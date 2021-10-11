@@ -1,0 +1,30 @@
+# docker-compose.yml
+
+version: '3.7'
+
+services:
+  web:
+    build: .
+    command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.main:app --host 0.0.0.0 --reload'
+    volumes:
+      - .:/app
+    ports:
+      - 8008:8000
+    environment:
+      - DATABASE_URL=postgresql://example:example@db:5432/example
+    depends_on:
+      - db
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - ./database/create_db.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=example
+      - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=example
+
+volumes:
+  postgres_data:
